@@ -1,0 +1,10 @@
+# Exclude vendor directory and lock file.
+vendor/*
+Gopkg.lock
+
+# Common binary names and files generated when using go tools.
+coverage.out
+count.out
+test
+profile.out
+tmp.out
