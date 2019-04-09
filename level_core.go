@@ -60,8 +60,8 @@ func (c *coreWithLevel) With(fields []zapcore.Field) zapcore.Core {
 	}
 }
 
-// wrapCoreWithLevel returns a zap.Option to use with zap.Logger.WithOption
-// method which wraps the current zap.Logger core within a coreWithLevel
+// wrapCoreWithLevel returns a zap.Option to use with zap.logger.WithOption
+// method which wraps the current zap.logger core within a coreWithLevel
 // with the new given level.
 func wrapCoreWithLevel(l *zap.AtomicLevel) zap.Option {
 	return zap.WrapCore(func(core zapcore.Core) zapcore.Core {

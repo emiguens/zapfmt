@@ -56,7 +56,7 @@ func withRequestID(next http.HandlerFunc) http.HandlerFunc {
 }
 
 // attachLogger decorated the request context with the given logger.
-func attachLogger(next http.HandlerFunc, logger log.Loggerer) http.HandlerFunc {
+func attachLogger(next http.HandlerFunc, logger log.Logger) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := log.Context(r.Context(), logger)
 		r = r.WithContext(ctx)

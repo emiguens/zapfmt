@@ -9,16 +9,16 @@ import (
 
 type contextKey string
 
-const contextKeyLogger = contextKey("zap-Logger")
+const contextKeyLogger = contextKey("zap-logger")
 
-// Context returns a copy of the parent context in which the Logger associated
+// Context returns a copy of the parent context in which the logger associated
 // with it is the one given.
 //
-// Usually you'll call Context with the Logger returned by NewProductionLogger.
-// Once you have a context with a Logger, all additional logging should be
+// Usually you'll call Context with the logger returned by NewProductionLogger.
+// Once you have a context with a logger, all additional logging should be
 // made by using the static methods exported by this package.
-func Context(ctx context.Context, log Loggerer) context.Context {
-	l, ok := log.(*Logger)
+func Context(ctx context.Context, log Logger) context.Context {
+	l, ok := log.(*logger)
 	if ok {
 		l.Logger.WithOptions(zap.AddCallerSkip(1))
 	}
@@ -33,14 +33,14 @@ func Sugar(ctx context.Context) *zap.SugaredLogger {
 	return getLogger(ctx).Sugar()
 }
 
-// Named adds a new path segment to the Logger's name. Segments are joined by
+// Named adds a new path segment to the logger's name. Segments are joined by
 // periods. By default, Loggers are unnamed.
 func Named(ctx context.Context, s string) context.Context {
 	logger := getLogger(ctx).Named(s)
 	return context.WithValue(ctx, contextKeyLogger, logger)
 }
 
-// With creates a child Logger and adds structured context to it. Fields added
+// With creates a child logger and adds structured context to it. Fields added
 // to the child don't affect the parent, and vice versa.
 func With(ctx context.Context, fields ...zap.Field) context.Context {
 	logger := getLogger(ctx).With(fields...)
@@ -62,9 +62,9 @@ func Check(ctx context.Context, lvl zapcore.Level, msg string) *zapcore.CheckedE
 }
 
 // DPanic logs a message at DPanicLevel. The message includes any fields
-// passed at the log site, as well as any fields accumulated on the Logger.
+// passed at the log site, as well as any fields accumulated on the logger.
 //
-// If the Logger is in development mode, it then panics (DPanic means
+// If the logger is in development mode, it then panics (DPanic means
 // "development panic"). This is useful for catching errors that are
 // recoverable, but shouldn't ever happen.
 func DPanic(ctx context.Context, msg string, fields ...zap.Field) {
@@ -72,48 +72,48 @@ func DPanic(ctx context.Context, msg string, fields ...zap.Field) {
 }
 
 // Debug logs a message at DebugLevel. The message includes any fields passed
-// at the log site, as well as any fields accumulated on the Logger.
+// at the log site, as well as any fields accumulated on the logger.
 func Debug(ctx context.Context, msg string, fields ...zap.Field) {
 	getLogger(ctx).Debug(msg, fields...)
 }
 
 // Error logs a message at ErrorLevel. The message includes any fields passed
-// at the log site, as well as any fields accumulated on the Logger.
+// at the log site, as well as any fields accumulated on the logger.
 func Error(ctx context.Context, msg string, fields ...zap.Field) {
 	getLogger(ctx).Error(msg, fields...)
 }
 
 // Fatal logs a message at FatalLevel. The message includes any fields passed
-// at the log site, as well as any fields accumulated on the Logger.
+// at the log site, as well as any fields accumulated on the logger.
 //
-// The Logger then calls os.Exit(1), even if logging at FatalLevel is
+// The logger then calls os.Exit(1), even if logging at FatalLevel is
 // disabled.
 func Fatal(ctx context.Context, msg string, fields ...zap.Field) {
 	getLogger(ctx).Fatal(msg, fields...)
 }
 
 // Info logs a message at InfoLevel. The message includes any fields passed
-// at the log site, as well as any fields accumulated on the Logger.
+// at the log site, as well as any fields accumulated on the logger.
 func Info(ctx context.Context, msg string, fields ...zap.Field) {
 	getLogger(ctx).Info(msg, fields...)
 }
 
 // Panic logs a message at PanicLevel. The message includes any fields passed
-// at the log site, as well as any fields accumulated on the Logger.
+// at the log site, as well as any fields accumulated on the logger.
 //
-// The Logger then panics, even if logging at PanicLevel is disabled.
+// The logger then panics, even if logging at PanicLevel is disabled.
 func Panic(ctx context.Context, msg string, fields ...zap.Field) {
 	getLogger(ctx).Panic(msg, fields...)
 }
 
 // Warn logs a message at WarnLevel. The message includes any fields passed
-// at the log site, as well as any fields accumulated on the Logger.
+// at the log site, as well as any fields accumulated on the logger.
 func Warn(ctx context.Context, msg string, fields ...zap.Field) {
 	getLogger(ctx).Warn(msg, fields...)
 }
 
-func getLogger(ctx context.Context) Loggerer {
-	l, ok := ctx.Value(contextKeyLogger).(Loggerer)
+func getLogger(ctx context.Context) Logger {
+	l, ok := ctx.Value(contextKeyLogger).(Logger)
 	if ok {
 		return l
 	}

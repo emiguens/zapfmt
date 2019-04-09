@@ -16,13 +16,13 @@ import (
 )
 
 var (
-	// logRegex returns the level as the first group, discards the timestamp, Logger as the
+	// logRegex returns the level as the first group, discards the timestamp, logger as the
 	// second group, caller is discarded and everything after that as the fourth group.
 	//
 	// Examples of matched lines:
 	//   [ts:2019-04-01T15:39:09.142773Z][level:debug][caller:log/logger_test.go:21][msg:before contextualicing]
-	//   [ts:2019-04-01T17:19:16.290081Z][level:warn][Logger:first_level.second_level.third_level][caller:log/logger_test.go:97][msg:my Warn message]
-	logRegex = regexp.MustCompile(`\[ts:(?:[0-9-T:\.]+Z)\]\[level:([a-z]+)\](\[Logger:(?:.*?)\])?\[caller:(.*?)\](.*)`)
+	//   [ts:2019-04-01T17:19:16.290081Z][level:warn][logger:first_level.second_level.third_level][caller:log/logger_test.go:97][msg:my Warn message]
+	logRegex = regexp.MustCompile(`\[ts:(?:[0-9-T:\.]+Z)\]\[level:([a-z]+)\](\[logger:(?:.*?)\])?\[caller:(.*?)\](.*)`)
 
 	// stacktraceRegex finds the stacktrace segment within a log line.
 	stacktraceRegex = regexp.MustCompile(`(\[stacktrace:(?:.*?)\])`)
@@ -63,7 +63,7 @@ func TestKeyValueLogger(t *testing.T) {
 		}
 
 		if l.LoggerName != name {
-			t.Fatalf("expected Logger name to be %s, got: %s", name, l.LoggerName)
+			t.Fatalf("expected logger name to be %s, got: %s", name, l.LoggerName)
 		}
 	}
 
@@ -77,13 +77,13 @@ func TestKeyValueLogger(t *testing.T) {
 	tt := []struct {
 		Name       string
 		Level      zapcore.Level
-		SetupFunc  func(t *testing.T, l log.Loggerer)
+		SetupFunc  func(t *testing.T, l log.Logger)
 		AssertFunc func(t *testing.T, lines []string)
 	}{
 		{
-			Name:  "Log Using Raw Loggerer",
+			Name:  "Log Using Raw Logger",
 			Level: zap.DebugLevel,
-			SetupFunc: func(t *testing.T, l log.Loggerer) {
+			SetupFunc: func(t *testing.T, l log.Logger) {
 				l.Debug("my Debug message")
 				l.Info("my Info message")
 				l.Warn("my Warn message")
@@ -99,7 +99,7 @@ func TestKeyValueLogger(t *testing.T) {
 		{
 			Name:  "Log Using Context",
 			Level: zap.DebugLevel,
-			SetupFunc: func(t *testing.T, l log.Loggerer) {
+			SetupFunc: func(t *testing.T, l log.Logger) {
 				ctx := log.Context(context.Background(), l)
 
 				log.Debug(ctx, "my Debug message")
@@ -115,9 +115,9 @@ func TestKeyValueLogger(t *testing.T) {
 			},
 		},
 		{
-			Name:  "Named Loggerer",
+			Name:  "Named Logger",
 			Level: zap.DebugLevel,
-			SetupFunc: func(t *testing.T, l log.Loggerer) {
+			SetupFunc: func(t *testing.T, l log.Logger) {
 				ctx := log.Context(context.Background(), l)
 
 				ctx = log.Named(ctx, "first_level")
@@ -130,15 +130,15 @@ func TestKeyValueLogger(t *testing.T) {
 				log.Warn(ctx, "my Warn message")
 			},
 			AssertFunc: func(t *testing.T, lines []string) {
-				assertLine(t, lines[0], "debug", "[msg:my Debug message]", "[Logger:first_level]")
-				assertLine(t, lines[1], "info", "[msg:my Info message]", "[Logger:first_level.second_level]")
-				assertLine(t, lines[2], "warn", "[msg:my Warn message]", "[Logger:first_level.second_level.third_level]")
+				assertLine(t, lines[0], "debug", "[msg:my Debug message]", "[logger:first_level]")
+				assertLine(t, lines[1], "info", "[msg:my Info message]", "[logger:first_level.second_level]")
+				assertLine(t, lines[2], "warn", "[msg:my Warn message]", "[logger:first_level.second_level.third_level]")
 			},
 		},
 		{
 			Name:  "Check Works (Should log)",
 			Level: zap.DebugLevel,
-			SetupFunc: func(t *testing.T, l log.Loggerer) {
+			SetupFunc: func(t *testing.T, l log.Logger) {
 				ctx := log.Context(context.Background(), l)
 				if ce := log.Check(ctx, zap.DebugLevel, "my Debug message"); ce != nil {
 					ce.Write(zap.String("foo", "bar"))
@@ -151,7 +151,7 @@ func TestKeyValueLogger(t *testing.T) {
 		{
 			Name:  "Check Works (Should not log)",
 			Level: zap.InfoLevel,
-			SetupFunc: func(t *testing.T, l log.Loggerer) {
+			SetupFunc: func(t *testing.T, l log.Logger) {
 				ctx := log.Context(context.Background(), l)
 				if ce := log.Check(ctx, zap.DebugLevel, "my Debug message"); ce != nil {
 					ce.Write(zap.String("foo", "bar"))
@@ -166,7 +166,7 @@ func TestKeyValueLogger(t *testing.T) {
 		{
 			Name:  "Log Message With Fields",
 			Level: zap.DebugLevel,
-			SetupFunc: func(t *testing.T, l log.Loggerer) {
+			SetupFunc: func(t *testing.T, l log.Logger) {
 				ctx := log.Context(context.Background(), l)
 
 				log.Debug(ctx, "my Debug message",
@@ -184,7 +184,7 @@ func TestKeyValueLogger(t *testing.T) {
 		{
 			Name:  "Log Message With Context Fields",
 			Level: zap.DebugLevel,
-			SetupFunc: func(t *testing.T, l log.Loggerer) {
+			SetupFunc: func(t *testing.T, l log.Logger) {
 				ctx := log.Context(context.Background(), l)
 
 				ctx = log.With(ctx,
@@ -207,7 +207,7 @@ func TestKeyValueLogger(t *testing.T) {
 		{
 			Name:  "Test Panic Levels",
 			Level: zap.DebugLevel,
-			SetupFunc: func(t *testing.T, l log.Loggerer) {
+			SetupFunc: func(t *testing.T, l log.Logger) {
 				defer func() {
 					if r := recover(); r == nil {
 						t.Fatal("expected panic to happen")
@@ -225,7 +225,7 @@ func TestKeyValueLogger(t *testing.T) {
 		{
 			Name:  "Test DPanic Levels",
 			Level: zap.DebugLevel,
-			SetupFunc: func(t *testing.T, l log.Loggerer) {
+			SetupFunc: func(t *testing.T, l log.Logger) {
 				ctx := log.Context(context.Background(), l)
 				log.DPanic(ctx, "my DPanic message")
 			},
@@ -235,9 +235,9 @@ func TestKeyValueLogger(t *testing.T) {
 			},
 		},
 		{
-			Name:  "Test Sugar Loggerer",
+			Name:  "Test Sugar Logger",
 			Level: zap.DebugLevel,
-			SetupFunc: func(t *testing.T, l log.Loggerer) {
+			SetupFunc: func(t *testing.T, l log.Logger) {
 				ctx := log.Context(context.Background(), l)
 
 				logger := log.Sugar(ctx)
@@ -250,7 +250,7 @@ func TestKeyValueLogger(t *testing.T) {
 		{
 			Name:  "Test Change Levels",
 			Level: zap.ErrorLevel,
-			SetupFunc: func(t *testing.T, l log.Loggerer) {
+			SetupFunc: func(t *testing.T, l log.Logger) {
 				ctx1 := log.Context(context.Background(), l)
 				log.Debug(ctx1, "should not appear", zap.String("log_level", "error"))
 				log.Info(ctx1, "should not appear", zap.String("log_level", "error"))
