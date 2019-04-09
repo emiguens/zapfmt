@@ -1,0 +1,31 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2.1
+orbs:
+  codecov: codecov/codecov@1.0.2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.12
+    
+    working_directory: /go/src/github.com/emiguens/zapfmt
+
+    environment:
+      TEST_RESULTS: /tmp/test-results
+
+    steps:
+      - checkout
+      - run: mkdir -p $TEST_RESULTS
+      - run:
+          name: Install dependencies
+          command: |
+            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+            dep ensure
+      - run:
+          name: Run tests
+          command: |
+            go test -v ./... -race -covermode=atomic -coverprofile=${TEST_RESULTS}/coverage.out -coverpkg=./... -count=1
+      - codecov/upload:
+          conf: .codecov.yml
+          file: ${TEST_RESULTS}/coverage.out

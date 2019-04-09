@@ -2,6 +2,9 @@
 # ZAPFMT
 
 [![GoDoc](https://godoc.org/github.com/emiguens/zapfmt?status.svg)](https://godoc.org/github.com/emiguens/zapfmt)
+[![Go Report Card](https://goreportcard.com/badge/github.com/emiguens/zapfmt)](https://goreportcard.com/report/github.com/emiguens/zapfmt)
+[![CircleCI](https://circleci.com/gh/emiguens/zapfmt.svg?style=svg)](https://circleci.com/gh/emiguens/zapfmt)
+[![codecov](https://codecov.io/gh/emiguens/zapfmt/branch/master/graph/badge.svg)](https://codecov.io/gh/emiguens/zapfmt)
 
 ZAP fmt is a small wrapper around [Uber log package](https://godoc.org/go.uber.org/zap). This package is supposed to be used with ZAP field functions, so importing zap package is required.
 
