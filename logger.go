@@ -14,7 +14,7 @@ import (
 //
 // DefaultLogger by default discards all logs. You can change it's implementation
 // by settings this variable to an instantiated logger of your own.
-var DefaultLogger = &logger{
+var DefaultLogger Logger = &logger{
 	Logger: zap.NewNop(),
 }
 
